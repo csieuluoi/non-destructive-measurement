@@ -181,11 +181,11 @@ def cal_image_background(imageArr, n_lines_top, n_lines_bottom):
 	for i in range(n_lines_bottom):
 		line_bottom += imageArr[img_rows -1 - i, :]
 
-	# line_top = line_top/n_lines_top
-	# line_bottom = line_bottom/n_lines_bottom
-	# line_average = 0.5*(line_top+line_bottom)
+	line_top = line_top/n_lines_top
+	line_bottom = line_bottom/n_lines_bottom
+	line_average = 0.5*(line_top+line_bottom)
 
-	line_average = (line_top+line_bottom) / (n_lines_bottom + n_lines_top)
+	# line_average = (line_top+line_bottom) / (n_lines_bottom + n_lines_top)
 	ground_matrix = np.tile(line_average, (imageArr.shape[0], 1))
 
 	return ground_matrix
@@ -204,6 +204,7 @@ def normalize_image(imageArr, ground_matrix):
 	# print("imageArr matrix shape: ", imageArr.shape)
 	# print(ground_matrix)
 	normalized_image = np.abs(ground_matrix - imageArr)
+	# normalized_image = np.abs(imageArr - ground_matrix)
 
 	return normalized_image
 
@@ -211,17 +212,19 @@ def preprocess(denoised = False, col_keep_fraction = 0.5, row_keep_fraction = 0.
 	real_images, imagine_images = read_data()
 	modules, argument = cal_complex(real_images, imagine_images, denoised = denoised, col_keep_fraction = col_keep_fraction, row_keep_fraction=row_keep_fraction)
 	normalized_image_list = []
+	modules_cut_list = []
 	# set config for each image (200um, 400um and 800um) following 'Draw_2A_500kHz.m'
-	center_cut_config_list = [[(10, 10), (3, 1)], [(3, 3), (19, 1)], [(3, 3), (19, 1)]]
+	center_cut_config_list = [[(10, 10), (3, 1)], [(3, 7), (19, 1)], [(3, 3), (19, 1)]]
 	cal_image_background_config_list = [(15, 15), (12, 12), (12, 12)]
 	for i, imageArr in enumerate(modules):
 		print(imageArr.shape)
 		imageArr = center_cut(imageArr, n_rows = center_cut_config_list[i][0], n_cols = center_cut_config_list[i][1])
+		modules_cut_list.append(imageArr)
 		ground_matrix = cal_image_background(imageArr, n_lines_top = cal_image_background_config_list[i][0], n_lines_bottom = cal_image_background_config_list[i][1])
 		normalized_image = normalize_image(imageArr, ground_matrix)
 		normalized_image_list.append(normalized_image)
 
-	return modules, normalized_image_list
+	return modules_cut_list, normalized_image_list
 
 """
 def calculate_ground_pix(images):
