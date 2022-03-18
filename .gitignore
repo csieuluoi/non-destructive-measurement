@@ -1,2 +1,5 @@
 *.hdf5
 *.npy
+*.h5
+.png
+__pycache__
